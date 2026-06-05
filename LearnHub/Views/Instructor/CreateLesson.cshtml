@@ -1,0 +1,64 @@
+﻿@model LearnHub.Models.Lesson
+@{
+    ViewData["Title"] = "Yeni Ders";
+}
+
+<h2>Yeni Ders Ekle — @ViewBag.CourseName</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="CreateLesson" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CourseId" value="@ViewBag.CourseId" />
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Title">Ders Adı</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Type">İçerik Tipi</label>
+                <select asp-for="Type" class="form-select" id="lessonType"
+                        onchange="toggleFields()">
+                    <option value="0">Video</option>
+                    <option value="1">Metin</option>
+                    <option value="2">PDF</option>
+                </select>
+            </div>
+
+            <div id="videoField" class="form-group mb-3">
+                <label asp-for="VideoUrl">Video URL (YouTube embed linki)</label>
+                <input asp-for="VideoUrl" class="form-control"
+                       placeholder="https://www.youtube.com/embed/..." />
+            </div>
+
+            <div id="textField" class="form-group mb-3" style="display:none">
+                <label asp-for="TextContent">Metin İçerik</label>
+                <textarea asp-for="TextContent" class="form-control" rows="8"></textarea>
+            </div>
+
+            <div id="pdfField" class="form-group mb-3" style="display:none">
+                <label>PDF Dosyası</label>
+                <input type="file" name="pdfFile" class="form-control" accept=".pdf" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <a asp-action="Lessons" asp-route-courseId="@ViewBag.CourseId"
+               class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleFields() {
+            var type = document.getElementById('lessonType').value;
+            document.getElementById('videoField').style.display = type == '0' ? 'block' : 'none';
+            document.getElementById('textField').style.display = type == '1' ? 'block' : 'none';
+            document.getElementById('pdfField').style.display = type == '2' ? 'block' : 'none';
+        }
+    </script>
+}

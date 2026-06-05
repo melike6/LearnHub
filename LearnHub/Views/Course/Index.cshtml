@@ -1,0 +1,60 @@
+﻿@model IEnumerable<LearnHub.Models.Course>
+@{
+    ViewData["Title"] = "Kurslar";
+}
+
+<h2>Kurslar</h2>
+
+<div class="row mb-3">
+    <div class="col-md-8">
+        <form method="get" asp-action="Index" class="d-flex gap-2">
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="form-control" placeholder="Kurs ara..." />
+            <select name="categoryId" class="form-select" style="max-width:200px">
+                <option value="">Tüm Kategoriler</option>
+                @foreach (var cat in ViewBag.Categories as List<LearnHub.Models.Category>)
+                {
+                    <option value="@cat.Id"
+                            selected="@(ViewBag.SelectedCategory == cat.Id)">
+                        @cat.Name
+                    </option>
+                }
+            </select>
+            <button type="submit" class="btn btn-primary">Filtrele</button>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Kurs bulunamadı.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var course in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    @if (course.CoverImage != null)
+                    {
+                        <img src="@course.CoverImage" class="card-img-top"
+                             style="height:180px;object-fit:cover" />
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@course.Title</h5>
+                        <p class="card-text text-muted small">@course.Category.Name</p>
+                        <p class="card-text">@course.Description</p>
+                        <p class="card-text small">
+                            <strong>Eğitmen:</strong> @course.Instructor.FullName
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Detail" asp-route-id="@course.Id"
+                           class="btn btn-primary btn-sm">Detay</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

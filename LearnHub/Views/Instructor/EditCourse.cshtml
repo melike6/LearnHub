@@ -1,0 +1,56 @@
+﻿@model LearnHub.Models.Course
+@{
+    ViewData["Title"] = "Kurs Düzenle";
+}
+
+<h2>Kurs Düzenle</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="EditCourse" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Title">Kurs Adı</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description">Açıklama</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="CategoryId">Kategori</label>
+                <select asp-for="CategoryId" asp-items="ViewBag.Categories"
+                        class="form-select">
+                    <option value="">-- Kategori Seçin --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            @if (Model.CoverImage != null)
+            {
+                <div class="mb-3">
+                    <label>Mevcut Kapak Görseli</label><br />
+                    <img src="@Model.CoverImage" style="max-height:120px" class="img-thumbnail" />
+                </div>
+            }
+
+            <div class="form-group mb-3">
+                <label>Yeni Kapak Görseli (değiştirmek istersen)</label>
+                <input type="file" name="coverImage" class="form-control" accept="image/*" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Güncelle</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

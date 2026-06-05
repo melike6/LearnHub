@@ -1,6 +1,7 @@
 ﻿using LearnHub.Data;
 using LearnHub.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,13 @@ namespace LearnHub.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context,
+                               UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -131,6 +135,54 @@ namespace LearnHub.Controllers
 
             TempData["Success"] = "Kurs reddedildi.";
             return RedirectToAction(nameof(Courses));
+        }
+
+        // ── KULLANICILAR ─────────────────────────────────────
+
+        public async Task<IActionResult> Users()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            var userRoles = new Dictionary<string, IList<string>>();
+
+            foreach (var user in users)
+                userRoles[user.Id] = await _userManager.GetRolesAsync(user);
+
+            ViewBag.UserRoles = userRoles;
+            return View(users);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MakeInstructor(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            if (!await _userManager.IsInRoleAsync(user, "Instructor"))
+            {
+                await _userManager.RemoveFromRoleAsync(user, "Student");
+                await _userManager.AddToRoleAsync(user, "Instructor");
+            }
+
+            TempData["Success"] = $"{user.FullName} eğitmen yapıldı.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MakeStudent(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            await _userManager.RemoveFromRoleAsync(user, "Instructor");
+            if (!await _userManager.IsInRoleAsync(user, "Student"))
+                await _userManager.AddToRoleAsync(user, "Student");
+
+            TempData["Success"] = $"{user.FullName} öğrenci yapıldı.";
+            return RedirectToAction(nameof(Users));
         }
     }
 }

@@ -1,0 +1,63 @@
+﻿@model IEnumerable<LearnHub.Models.Course>
+@{
+    ViewData["Title"] = "Eğitmen Paneli";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Eğitmen Paneli</h2>
+    <a asp-action="CreateCourse" class="btn btn-success">+ Yeni Kurs</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Henüz kurs oluşturmadınız.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Kurs Adı</th>
+                <th>Kategori</th>
+                <th>Ders Sayısı</th>
+                <th>Durum</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in Model)
+            {
+                <tr>
+                    <td>@course.Title</td>
+                    <td>@course.Category.Name</td>
+                    <td>@course.Lessons.Count</td>
+                    <td>
+                        @if (course.Status == LearnHub.Models.CourseStatus.Pending)
+                        {
+                            <span class="badge bg-warning text-dark">Onay Bekliyor</span>
+                        }
+                        else if (course.Status == LearnHub.Models.CourseStatus.Approved)
+                        {
+                            <span class="badge bg-success">Onaylı</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Reddedildi</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="EditCourse" asp-route-id="@course.Id"
+                           class="btn btn-sm btn-warning">Düzenle</a>
+                        <a asp-action="Lessons" asp-route-courseId="@course.Id"
+                           class="btn btn-sm btn-primary">Dersler</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

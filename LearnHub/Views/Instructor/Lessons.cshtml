@@ -1,0 +1,57 @@
+﻿@model IEnumerable<LearnHub.Models.Lesson>
+@{
+    ViewData["Title"] = "Dersler";
+    var course = ViewBag.Course as LearnHub.Models.Course;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@course?.Title — Dersler</h2>
+    <div>
+        <a asp-action="CreateLesson" asp-route-courseId="@course?.Id"
+           class="btn btn-success">+ Yeni Ders</a>
+        <a asp-action="Index" class="btn btn-secondary">Panele Dön</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Bu kursa henüz ders eklenmemiş.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sıra</th>
+                <th>Ders Adı</th>
+                <th>Tip</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lesson in Model)
+            {
+                <tr>
+                    <td>@lesson.Order</td>
+                    <td>@lesson.Title</td>
+                    <td>@lesson.Type</td>
+                    <td>
+                        <a asp-action="EditLesson" asp-route-id="@lesson.Id"
+                           class="btn btn-sm btn-warning">Düzenle</a>
+                        <form asp-action="DeleteLesson" asp-route-id="@lesson.Id"
+                              method="post" style="display:inline"
+                              onsubmit="return confirm('Dersi silmek istediğinize emin misiniz?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

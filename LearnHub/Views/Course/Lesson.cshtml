@@ -1,0 +1,73 @@
+﻿@model LearnHub.Models.Lesson
+@{
+    ViewData["Title"] = Model.Title;
+    var lessons = Model.Course.Lessons.OrderBy(l => l.Order).ToList();
+    var currentIndex = lessons.FindIndex(l => l.Id == Model.Id);
+    var nextLesson = currentIndex < lessons.Count - 1 ? lessons[currentIndex + 1] : null;
+    var prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h3>@Model.Title</h3>
+        <p class="text-muted">
+            <a asp-action="Detail" asp-route-id="@Model.CourseId">
+                @Model.Course.Title
+            </a>
+        </p>
+        <hr />
+
+        @if (Model.Type == LearnHub.Models.LessonType.Video && Model.VideoUrl != null)
+        {
+            <div class="ratio ratio-16x9 mb-3">
+                <iframe src="@Model.VideoUrl" allowfullscreen></iframe>
+            </div>
+        }
+        else if (Model.Type == LearnHub.Models.LessonType.Text)
+        {
+            <div class="mb-3">@Html.Raw(Model.TextContent)</div>
+        }
+        else if (Model.Type == LearnHub.Models.LessonType.PDF && Model.FileUrl != null)
+        {
+            <div class="mb-3">
+                <a href="@Model.FileUrl" target="_blank" class="btn btn-outline-primary">
+                    PDF Dosyasını Aç
+                </a>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between mt-4">
+            @if (prevLesson != null)
+            {
+                <a asp-action="Lesson" asp-route-id="@prevLesson.Id"
+                   class="btn btn-secondary">← Önceki Ders</a>
+            }
+            else
+            {
+                <span></span>
+            }
+            @if (nextLesson != null)
+            {
+                <a asp-action="Lesson" asp-route-id="@nextLesson.Id"
+                   class="btn btn-primary">Sonraki Ders →</a>
+            }
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><strong>Ders Listesi</strong></div>
+            <ul class="list-group list-group-flush">
+                @foreach (var lesson in lessons)
+                {
+                    <li class="list-group-item @(lesson.Id == Model.Id ? "active" : "")">
+                        <a asp-action="Lesson" asp-route-id="@lesson.Id"
+                           class="@(lesson.Id == Model.Id ? "text-white" : "") text-decoration-none">
+                            @lesson.Order. @lesson.Title
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

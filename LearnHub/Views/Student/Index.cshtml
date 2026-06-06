@@ -1,0 +1,64 @@
+﻿@model IEnumerable<LearnHub.Models.Enrollment>
+@{
+    ViewData["Title"] = "Panelim";
+    var completedIds = ViewBag.CompletedLessonIds as HashSet<int> ?? new HashSet<int>();
+}
+
+<h2>Panelim</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Henüz hiçbir kursa kayıt olmadınız.
+        <a asp-controller="Course" asp-action="Index">Kurslara göz at</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var enrollment in Model)
+        {
+            var totalLessons = enrollment.Course.Lessons.Count;
+            var completedCount = enrollment.Course.Lessons
+            .Count(l => completedIds.Contains(l.Id));
+            var percent = totalLessons > 0
+            ? (int)((double)completedCount / totalLessons * 100)
+            : 0;
+
+            <div class="col">
+                <div class="card h-100">
+                    @if (enrollment.Course.CoverImage != null)
+                    {
+                        <img src="@enrollment.Course.CoverImage"
+                             class="card-img-top"
+                             style="height:150px;object-fit:cover" />
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@enrollment.Course.Title</h5>
+                        <p class="card-text text-muted small">
+                            @enrollment.Course.Category.Name
+                        </p>
+                        <p class="card-text small">
+                            Kayıt: @enrollment.EnrolledAt.ToString("dd.MM.yyyy")
+                        </p>
+                        <div class="mb-2">
+                            <small>
+                                İlerleme: %@percent
+                                (@completedCount / @totalLessons ders)
+                            </small>
+                            <div class="progress mt-1" style="height:8px">
+                                <div class="progress-bar bg-success"
+                                     style="width:@percent%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-controller="Course" asp-action="Detail"
+                           asp-route-id="@enrollment.CourseId"
+                           class="btn btn-primary btn-sm">Kursa Git</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

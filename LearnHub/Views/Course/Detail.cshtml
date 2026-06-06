@@ -1,6 +1,8 @@
 ﻿@model LearnHub.Models.Course
 @{
     ViewData["Title"] = Model.Title;
+    bool isEnrolled = ViewBag.IsEnrolled ?? false;
+    int progressPercent = ViewBag.ProgressPercent ?? 0;
 }
 
 <div class="row">
@@ -16,6 +18,49 @@
             <strong>Eğitmen:</strong> @Model.Instructor.FullName
         </p>
         <p>@Model.Description</p>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        @if (User.Identity!.IsAuthenticated)
+        {
+            @if (!isEnrolled)
+            {
+                <form asp-action="Enroll" asp-route-courseId="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success btn-lg">
+                        Kursa Kayıt Ol
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-success">Bu kursa kayıtlısınız.</div>
+                <div class="mb-3">
+                    <strong>İlerleme: %@progressPercent</strong>
+                    <div class="progress mt-1">
+                        <div class="progress-bar" role="progressbar"
+                             style="width:@progressPercent%"
+                             aria-valuenow="@progressPercent"
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <a asp-area="Identity" asp-page="/Account/Login"
+               class="btn btn-outline-primary">
+                Kayıt olmak için giriş yapın
+            </a>
+        }
     </div>
 
     <div class="col-md-4">
@@ -30,12 +75,14 @@
                 }
                 @foreach (var lesson in Model.Lessons)
                 {
-                    <li class="list-group-item d-flex justify-content-between">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>@lesson.Order. @lesson.Title</span>
-                        <a asp-controller="Course" asp-action="Lesson"
-                           asp-route-id="@lesson.Id" class="btn btn-sm btn-outline-primary">
-                            Git
-                        </a>
+                        @if (isEnrolled)
+                        {
+                            <a asp-controller="Course" asp-action="Lesson"
+                               asp-route-id="@lesson.Id"
+                               class="btn btn-sm btn-outline-primary">Git</a>
+                        }
                     </li>
                 }
             </ul>

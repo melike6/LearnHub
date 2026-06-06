@@ -1,7 +1,9 @@
 ﻿using LearnHub.Data;
 using LearnHub.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace LearnHub.Controllers
 {
@@ -13,6 +15,9 @@ namespace LearnHub.Controllers
         {
             _context = context;
         }
+
+        private string? GetUserId() =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         public async Task<IActionResult> Index(int? categoryId, string? search)
         {
@@ -49,11 +54,61 @@ namespace LearnHub.Controllers
             if (course == null)
                 return NotFound();
 
+            var userId = GetUserId();
+            bool isEnrolled = false;
+            int progressPercent = 0;
+
+            if (userId != null)
+            {
+                isEnrolled = await _context.Enrollments
+                    .AnyAsync(e => e.UserId == userId && e.CourseId == id);
+
+                if (isEnrolled && course.Lessons.Any())
+                {
+                    var completedCount = await _context.LessonProgresses
+                        .CountAsync(lp => lp.UserId == userId &&
+                                          lp.Lesson.CourseId == id &&
+                                          lp.IsCompleted);
+                    progressPercent = (int)((double)completedCount / course.Lessons.Count * 100);
+                }
+            }
+
+            ViewBag.IsEnrolled = isEnrolled;
+            ViewBag.ProgressPercent = progressPercent;
+
             return View(course);
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Enroll(int courseId)
+        {
+            var userId = GetUserId()!;
+
+            var alreadyEnrolled = await _context.Enrollments
+                .AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+            if (!alreadyEnrolled)
+            {
+                _context.Enrollments.Add(new Enrollment
+                {
+                    UserId = userId,
+                    CourseId = courseId,
+                    EnrolledAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Kursa başarıyla kayıt oldunuz!";
+            }
+
+            return RedirectToAction(nameof(Detail), new { id = courseId });
+        }
+
+        [Authorize]
         public async Task<IActionResult> Lesson(int id)
         {
+            var userId = GetUserId()!;
+
             var lesson = await _context.Lessons
                 .Include(l => l.Course)
                     .ThenInclude(c => c.Lessons.Where(l => l.IsActive).OrderBy(l => l.Order))
@@ -62,7 +117,56 @@ namespace LearnHub.Controllers
             if (lesson == null)
                 return NotFound();
 
+            // Kursa kayıtlı mı kontrol et
+            var isEnrolled = await _context.Enrollments
+                .AnyAsync(e => e.UserId == userId && e.CourseId == lesson.CourseId);
+
+            if (!isEnrolled)
+            {
+                TempData["Error"] = "Bu dersi izlemek için önce kursa kayıt olmalısınız.";
+                return RedirectToAction(nameof(Detail), new { id = lesson.CourseId });
+            }
+
+            // Bu dersi tamamladı mı
+            var progress = await _context.LessonProgresses
+                .FirstOrDefaultAsync(lp => lp.UserId == userId && lp.LessonId == id);
+
+            ViewBag.IsCompleted = progress?.IsCompleted ?? false;
+
             return View(lesson);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteLesson(int lessonId)
+        {
+            var userId = GetUserId()!;
+
+            var progress = await _context.LessonProgresses
+                .FirstOrDefaultAsync(lp => lp.UserId == userId && lp.LessonId == lessonId);
+
+            if (progress == null)
+            {
+                _context.LessonProgresses.Add(new LessonProgress
+                {
+                    UserId = userId,
+                    LessonId = lessonId,
+                    IsCompleted = true,
+                    CompletedAt = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                progress.IsCompleted = true;
+                progress.CompletedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Ders tamamlandı olarak işaretlendi!";
+
+            var lesson = await _context.Lessons.FindAsync(lessonId);
+            return RedirectToAction(nameof(Lesson), new { id = lessonId });
         }
     }
 }

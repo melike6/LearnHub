@@ -5,6 +5,7 @@
     var currentIndex = lessons.FindIndex(l => l.Id == Model.Id);
     var nextLesson = currentIndex < lessons.Count - 1 ? lessons[currentIndex + 1] : null;
     var prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
+    bool isCompleted = ViewBag.IsCompleted ?? false;
 }
 
 <div class="row">
@@ -12,10 +13,15 @@
         <h3>@Model.Title</h3>
         <p class="text-muted">
             <a asp-action="Detail" asp-route-id="@Model.CourseId">
-                @Model.Course.Title
+                ← @Model.Course.Title
             </a>
         </p>
         <hr />
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
 
         @if (Model.Type == LearnHub.Models.LessonType.Video && Model.VideoUrl != null)
         {
@@ -36,6 +42,22 @@
             </div>
         }
 
+        @if (!isCompleted)
+        {
+            <form asp-action="CompleteLesson" asp-route-lessonId="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success">
+                    ✓ Dersi Tamamlandı Olarak İşaretle
+                </button>
+            </form>
+        }
+        else
+        {
+            <div class="alert alert-success">
+                ✓ Bu dersi tamamladınız.
+            </div>
+        }
+
         <div class="d-flex justify-content-between mt-4">
             @if (prevLesson != null)
             {
@@ -44,8 +66,10 @@
             }
             else
             {
+
                 <span></span>
             }
+
             @if (nextLesson != null)
             {
                 <a asp-action="Lesson" asp-route-id="@nextLesson.Id"

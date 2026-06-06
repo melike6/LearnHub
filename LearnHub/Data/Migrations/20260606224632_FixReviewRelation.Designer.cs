@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearnHub.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260606223706_AddReviewTable")]
-    partial class AddReviewTable
+    [Migration("20260606224632_FixReviewRelation")]
+    partial class FixReviewRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -446,9 +446,6 @@ namespace LearnHub.Data.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CourseId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -462,8 +459,6 @@ namespace LearnHub.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
-
-                    b.HasIndex("CourseId1");
 
                     b.HasIndex("UserId", "CourseId")
                         .IsUnique();
@@ -754,14 +749,10 @@ namespace LearnHub.Data.Migrations
             modelBuilder.Entity("LearnHub.Models.Review", b =>
                 {
                     b.HasOne("LearnHub.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("Reviews")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("LearnHub.Models.Course", null)
-                        .WithMany("Reviews")
-                        .HasForeignKey("CourseId1");
 
                     b.HasOne("LearnHub.Models.ApplicationUser", "User")
                         .WithMany()

@@ -107,7 +107,7 @@ namespace LearnHub.Data
 
             builder.Entity<Review>()
                 .HasOne(r => r.Course)
-                .WithMany()
+                .WithMany(c => c.Reviews)
                 .HasForeignKey(r => r.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 

@@ -5,10 +5,26 @@
 namespace LearnHub.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddReviewTable : Migration
+    public partial class FixReviewRelation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_Courses_CourseId1",
+                table: "Reviews");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Reviews_CourseId1",
+                table: "Reviews");
+
+            migrationBuilder.DropColumn(
+                name: "CourseId1",
+                table: "Reviews");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
                 name: "CourseId1",
@@ -27,22 +43,6 @@ namespace LearnHub.Data.Migrations
                 column: "CourseId1",
                 principalTable: "Courses",
                 principalColumn: "Id");
-        }
-
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Reviews_Courses_CourseId1",
-                table: "Reviews");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Reviews_CourseId1",
-                table: "Reviews");
-
-            migrationBuilder.DropColumn(
-                name: "CourseId1",
-                table: "Reviews");
         }
     }
 }

@@ -4,53 +4,93 @@
     var userRoles = ViewBag.UserRoles as Dictionary<string, IList<string>>;
 }
 
-<h2>Kullanıcı Yönetimi</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Kullanıcı Yönetimi</h2>
+    <a asp-action="Index" class="btn btn-secondary">← Panele Dön</a>
+</div>
 
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success">@TempData["Success"]</div>
 }
 
-<table class="table table-bordered">
+<table class="table table-bordered align-middle">
     <thead>
         <tr>
             <th>Ad Soyad</th>
             <th>E-posta</th>
-            <th>Roller</th>
+            <th>Rol</th>
+            <th>Durum</th>
+            <th>Kayıt Tarihi</th>
             <th>İşlemler</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var user in Model)
         {
-            var roles = userRoles!.ContainsKey(user.Id) ? userRoles[user.Id] : new List<string>();
-            <tr>
+            var roles = userRoles!.ContainsKey(user.Id)
+            ? userRoles[user.Id] : new List<string>();
+            <tr class="@(!user.IsActive ? "table-secondary" : "")">
                 <td>@user.FullName</td>
                 <td>@user.Email</td>
-                <td>@string.Join(", ", roles)</td>
+                <td>
+                    @foreach (var role in roles)
+                    {
+                        <span class="badge @(role == "Admin" ? "bg-danger" :
+                                                                           role == "Instructor" ? "bg-success" :
+                                                                           "bg-primary")">
+                    @role
+                </span>
+                                }
+                </td>
+                <td>
+                    @if (user.IsActive)
+                    {
+                        <span class="badge bg-success">Aktif</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Pasif</span>
+                    }
+                </td>
+                <td>@user.CreatedAt.ToString("dd.MM.yyyy")</td>
                 <td>
                     @if (!roles.Contains("Admin"))
                     {
                         @if (!roles.Contains("Instructor"))
                         {
-                            <form asp-action="MakeInstructor" asp-route-userId="@user.Id"
+                            <form asp-action="MakeInstructor"
+                                  asp-route-userId="@user.Id"
                                   method="post" style="display:inline">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-success">
+                                <button type="submit"
+                                        class="btn btn-sm btn-success">
                                     Eğitmen Yap
                                 </button>
                             </form>
                         }
                         else
                         {
-                            <form asp-action="MakeStudent" asp-route-userId="@user.Id"
+                            <form asp-action="MakeStudent"
+                                  asp-route-userId="@user.Id"
                                   method="post" style="display:inline">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-warning">
+                                <button type="submit"
+                                        class="btn btn-sm btn-warning">
                                     Öğrenci Yap
                                 </button>
                             </form>
                         }
+
+                        <form asp-action="ToggleUserActive"
+                              asp-route-userId="@user.Id"
+                              method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                @(user.IsActive ? "Pasif Et" : "Aktif Et")
+                            </button>
+                        </form>
                     }
                 </td>
             </tr>

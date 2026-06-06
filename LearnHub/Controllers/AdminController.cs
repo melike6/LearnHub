@@ -20,8 +20,13 @@ namespace LearnHub.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            ViewBag.TotalUsers = await _userManager.Users.CountAsync();
+            ViewBag.TotalCourses = await _context.Courses.CountAsync();
+            ViewBag.TotalEnrollments = await _context.Enrollments.CountAsync();
+            ViewBag.PendingCourses = await _context.Courses
+                .CountAsync(c => c.Status == CourseStatus.Pending);
             return View();
         }
 
@@ -35,10 +40,7 @@ namespace LearnHub.Controllers
             return View(categories);
         }
 
-        public IActionResult CreateCategory()
-        {
-            return View();
-        }
+        public IActionResult CreateCategory() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -58,8 +60,7 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> EditCategory(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-                return NotFound();
+            if (category == null) return NotFound();
             return View(category);
         }
 
@@ -67,11 +68,8 @@ namespace LearnHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCategory(int id, Category category)
         {
-            if (id != category.Id)
-                return NotFound();
-
-            if (!ModelState.IsValid)
-                return View(category);
+            if (id != category.Id) return NotFound();
+            if (!ModelState.IsValid) return View(category);
 
             _context.Update(category);
             await _context.SaveChangesAsync();
@@ -85,8 +83,7 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-                return NotFound();
+            if (category == null) return NotFound();
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
@@ -112,8 +109,7 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> ApproveCourse(int id)
         {
             var course = await _context.Courses.FindAsync(id);
-            if (course == null)
-                return NotFound();
+            if (course == null) return NotFound();
 
             course.Status = CourseStatus.Approved;
             await _context.SaveChangesAsync();
@@ -127,13 +123,26 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> RejectCourse(int id)
         {
             var course = await _context.Courses.FindAsync(id);
-            if (course == null)
-                return NotFound();
+            if (course == null) return NotFound();
 
             course.Status = CourseStatus.Rejected;
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Kurs reddedildi.";
+            return RedirectToAction(nameof(Courses));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCourse(int id)
+        {
+            var course = await _context.Courses.FindAsync(id);
+            if (course == null) return NotFound();
+
+            _context.Courses.Remove(course);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Kurs silindi.";
             return RedirectToAction(nameof(Courses));
         }
 
@@ -156,14 +165,11 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> MakeInstructor(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return NotFound();
+            if (user == null) return NotFound();
 
+            await _userManager.RemoveFromRoleAsync(user, "Student");
             if (!await _userManager.IsInRoleAsync(user, "Instructor"))
-            {
-                await _userManager.RemoveFromRoleAsync(user, "Student");
                 await _userManager.AddToRoleAsync(user, "Instructor");
-            }
 
             TempData["Success"] = $"{user.FullName} eğitmen yapıldı.";
             return RedirectToAction(nameof(Users));
@@ -174,14 +180,30 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> MakeStudent(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return NotFound();
+            if (user == null) return NotFound();
 
             await _userManager.RemoveFromRoleAsync(user, "Instructor");
             if (!await _userManager.IsInRoleAsync(user, "Student"))
                 await _userManager.AddToRoleAsync(user, "Student");
 
             TempData["Success"] = $"{user.FullName} öğrenci yapıldı.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleUserActive(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            user.IsActive = !user.IsActive;
+            await _userManager.UpdateAsync(user);
+
+            TempData["Success"] = user.IsActive
+                ? $"{user.FullName} aktif edildi."
+                : $"{user.FullName} pasif edildi.";
+
             return RedirectToAction(nameof(Users));
         }
     }

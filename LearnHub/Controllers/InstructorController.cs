@@ -26,12 +26,28 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = GetUserId();
+
             var courses = await _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Lessons)
                 .Where(c => c.InstructorId == userId)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
+
+            var courseIds = courses.Select(c => c.Id).ToList();
+
+            ViewBag.TotalStudents = await _context.Enrollments
+                .CountAsync(e => courseIds.Contains(e.CourseId));
+
+            ViewBag.TotalLessons = await _context.Lessons
+                .CountAsync(l => courseIds.Contains(l.CourseId));
+
+            ViewBag.ApprovedCourses = courses
+                .Count(c => c.Status == CourseStatus.Approved);
+
+            ViewBag.PendingCourses = courses
+                .Count(c => c.Status == CourseStatus.Pending);
+
             return View(courses);
         }
 

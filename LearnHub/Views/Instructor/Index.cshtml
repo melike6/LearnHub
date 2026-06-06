@@ -3,8 +3,37 @@
     ViewData["Title"] = "Eğitmen Paneli";
 }
 
+<h2 class="mb-4">Eğitmen Paneli</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-success">
+            <div class="fs-2 fw-bold text-success">@ViewBag.ApprovedCourses</div>
+            <div class="text-muted">Aktif Kurs</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-warning">
+            <div class="fs-2 fw-bold text-warning">@ViewBag.PendingCourses</div>
+            <div class="text-muted">Onay Bekleyen</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-primary">
+            <div class="fs-2 fw-bold text-primary">@ViewBag.TotalStudents</div>
+            <div class="text-muted">Toplam Öğrenci</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-info">
+            <div class="fs-2 fw-bold text-info">@ViewBag.TotalLessons</div>
+            <div class="text-muted">Toplam Ders</div>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Eğitmen Paneli</h2>
+    <h4>Kurslarım</h4>
     <a asp-action="CreateCourse" class="btn btn-success">+ Yeni Kurs</a>
 </div>
 
@@ -19,12 +48,12 @@
 }
 else
 {
-    <table class="table table-bordered">
+    <table class="table table-bordered align-middle">
         <thead>
             <tr>
                 <th>Kurs Adı</th>
                 <th>Kategori</th>
-                <th>Ders Sayısı</th>
+                <th>Ders</th>
                 <th>Durum</th>
                 <th>İşlemler</th>
             </tr>

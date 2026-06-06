@@ -1,10 +1,11 @@
 ﻿@model IEnumerable<LearnHub.Models.Course>
 @{
-    ViewData["Title"] = "Kurslar";
+    ViewData["Title"] = "Kurs Yönetimi";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Kurs Yönetimi</h2>
+    <a asp-action="Index" class="btn btn-secondary">← Panele Dön</a>
 </div>
 
 @if (TempData["Success"] != null)
@@ -12,12 +13,13 @@
     <div class="alert alert-success">@TempData["Success"]</div>
 }
 
-<table class="table table-bordered">
+<table class="table table-bordered align-middle">
     <thead>
         <tr>
             <th>Kurs Adı</th>
             <th>Kategori</th>
             <th>Eğitmen</th>
+            <th>Oluşturma</th>
             <th>Durum</th>
             <th>İşlemler</th>
         </tr>
@@ -29,6 +31,7 @@
                 <td>@course.Title</td>
                 <td>@course.Category.Name</td>
                 <td>@course.Instructor.FullName</td>
+                <td>@course.CreatedAt.ToString("dd.MM.yyyy")</td>
                 <td>
                     @if (course.Status == LearnHub.Models.CourseStatus.Pending)
                     {
@@ -49,14 +52,26 @@
                         <form asp-action="ApproveCourse" asp-route-id="@course.Id"
                               method="post" style="display:inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-success">Onayla</button>
+                            <button type="submit" class="btn btn-sm btn-success">
+                                Onayla
+                            </button>
                         </form>
                         <form asp-action="RejectCourse" asp-route-id="@course.Id"
                               method="post" style="display:inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-danger">Reddet</button>
+                            <button type="submit" class="btn btn-sm btn-warning">
+                                Reddet
+                            </button>
                         </form>
                     }
+                    <form asp-action="DeleteCourse" asp-route-id="@course.Id"
+                          method="post" style="display:inline"
+                          onsubmit="return confirm('Kursu silmek istediğinize emin misiniz?')">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            Sil
+                        </button>
+                    </form>
                 </td>
             </tr>
         }

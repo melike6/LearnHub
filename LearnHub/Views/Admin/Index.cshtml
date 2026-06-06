@@ -2,25 +2,60 @@
     ViewData["Title"] = "Admin Panel";
 }
 
-<h2>Admin Panel</h2>
+<h2 class="mb-4">Admin Panel</h2>
 
-<div class="row mt-4">
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-primary">
+            <div class="fs-1 fw-bold text-primary">@ViewBag.TotalUsers</div>
+            <div class="text-muted">Toplam Kullanıcı</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-success">
+            <div class="fs-1 fw-bold text-success">@ViewBag.TotalCourses</div>
+            <div class="text-muted">Toplam Kurs</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-info">
+            <div class="fs-1 fw-bold text-info">@ViewBag.TotalEnrollments</div>
+            <div class="text-muted">Toplam Kayıt</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-warning">
+            <div class="fs-1 fw-bold text-warning">@ViewBag.PendingCourses</div>
+            <div class="text-muted">Onay Bekleyen</div>
+        </div>
+    </div>
+</div>
+
+@if ((int)ViewBag.PendingCourses > 0)
+{
+    <div class="alert alert-warning">
+        <strong>@ViewBag.PendingCourses</strong> kurs onay bekliyor.
+        <a asp-action="Courses" class="alert-link">Kursları Yönet</a>
+    </div>
+}
+
+<div class="row g-3">
     <div class="col-md-3">
         <div class="card text-center p-3">
             <h5>Kategoriler</h5>
-            <a asp-controller="Admin" asp-action="Categories" class="btn btn-primary mt-2">Yönet</a>
+            <a asp-action="Categories" class="btn btn-primary mt-2">Yönet</a>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-center p-3">
             <h5>Kurslar</h5>
-            <a asp-controller="Admin" asp-action="Courses" class="btn btn-primary mt-2">Yönet</a>
+            <a asp-action="Courses" class="btn btn-primary mt-2">Yönet</a>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-center p-3">
             <h5>Kullanıcılar</h5>
-            <a asp-controller="Admin" asp-action="Users" class="btn btn-primary mt-2">Yönet</a>
+            <a asp-action="Users" class="btn btn-primary mt-2">Yönet</a>
         </div>
     </div>
 </div>

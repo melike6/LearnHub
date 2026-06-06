@@ -55,6 +55,10 @@ else
                            class="btn btn-sm btn-warning">Düzenle</a>
                         <a asp-action="Lessons" asp-route-courseId="@course.Id"
                            class="btn btn-sm btn-primary">Dersler</a>
+                        <a asp-action="Quizzes" asp-route-courseId="@course.Id"
+                           class="btn btn-sm btn-info">Quizler</a>
+                        <a asp-action="StudentProgress" asp-route-courseId="@course.Id"
+                           class="btn btn-sm btn-secondary">İlerleme</a>
                     </td>
                 </tr>
             }

@@ -36,9 +36,17 @@ namespace LearnHub.Controllers
                 .Where(lp => lp.UserId == userId && lp.IsCompleted)
                 .ToListAsync();
 
+            var quizAttempts = await _context.QuizAttempts
+                .Include(qa => qa.Quiz)
+                    .ThenInclude(q => q.Course)
+                .Where(qa => qa.UserId == userId)
+                .OrderByDescending(qa => qa.AttemptedAt)
+                .ToListAsync();
+
             var completedLessonIds = progressData.Select(lp => lp.LessonId).ToHashSet();
 
             ViewBag.CompletedLessonIds = completedLessonIds;
+            ViewBag.QuizAttempts = quizAttempts;
             return View(enrollments);
         }
     }

@@ -1,0 +1,55 @@
+﻿@model LearnHub.Models.QuizAttempt
+@{
+    ViewData["Title"] = "Quiz Sonucu";
+}
+
+<div class="text-center mb-4">
+    <h2>Quiz Sonucu</h2>
+    <h1 class="display-1 @(Model.IsPassed ? "text-success" : "text-danger")">
+        %@Model.Score
+    </h1>
+    @if (Model.IsPassed)
+    {
+        <div class="alert alert-success fs-5">
+            Tebrikler! Quizi geçtiniz.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger fs-5">
+            Quizi geçemediniz. Geçme puanı: %@Model.Quiz.PassingScore
+        </div>
+    }
+    <a asp-controller="Course" asp-action="Detail"
+       asp-route-id="@Model.Quiz.CourseId"
+       class="btn btn-primary">Kursa Dön</a>
+</div>
+
+<h4>Cevaplarınız</h4>
+@foreach (var answer in Model.Answers)
+{
+    <div class="card mb-3 @(answer.IsCorrect ? "border-success" : "border-danger")">
+        <div class="card-header">
+            @answer.Question.Text
+            @if (answer.IsCorrect)
+            {
+                <span class="badge bg-success ms-2">Doğru</span>
+            }
+            else
+            {
+                <span class="badge bg-danger ms-2">Yanlış</span>
+            }
+        </div>
+        <div class="card-body">
+            <p>Seçtiğiniz: <strong>@answer.SelectedOption.Text</strong></p>
+            @if (!answer.IsCorrect)
+            {
+                var correct = answer.Question.Options
+                .FirstOrDefault(o => o.IsCorrect);
+                <p class="text-success">
+                    Doğru cevap: <strong>@correct?.Text</strong>
+                </p>
+            }
+        </div>
+    </div>
+}

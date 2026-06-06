@@ -87,8 +87,7 @@ namespace LearnHub.Controllers
             var userId = GetUserId();
             var course = await _context.Courses
                 .FirstOrDefaultAsync(c => c.Id == id && c.InstructorId == userId);
-            if (course == null)
-                return NotFound();
+            if (course == null) return NotFound();
 
             await LoadCategories(course.CategoryId);
             return View(course);
@@ -98,8 +97,7 @@ namespace LearnHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCourse(int id, Course course, IFormFile? coverImage)
         {
-            if (id != course.Id)
-                return NotFound();
+            if (id != course.Id) return NotFound();
 
             ModelState.Remove("InstructorId");
             ModelState.Remove("Instructor");
@@ -112,8 +110,7 @@ namespace LearnHub.Controllers
             }
 
             var existing = await _context.Courses.FindAsync(id);
-            if (existing == null)
-                return NotFound();
+            if (existing == null) return NotFound();
 
             existing.Title = course.Title;
             existing.Description = course.Description;
@@ -145,8 +142,7 @@ namespace LearnHub.Controllers
                 .Include(c => c.Lessons.OrderBy(l => l.Order))
                 .FirstOrDefaultAsync(c => c.Id == courseId && c.InstructorId == userId);
 
-            if (course == null)
-                return NotFound();
+            if (course == null) return NotFound();
 
             ViewBag.Course = course;
             return View(course.Lessons.ToList());
@@ -157,8 +153,7 @@ namespace LearnHub.Controllers
             var userId = GetUserId();
             var course = await _context.Courses
                 .FirstOrDefaultAsync(c => c.Id == courseId && c.InstructorId == userId);
-            if (course == null)
-                return NotFound();
+            if (course == null) return NotFound();
 
             ViewBag.CourseId = courseId;
             ViewBag.CourseName = course.Title;
@@ -207,8 +202,7 @@ namespace LearnHub.Controllers
             var lesson = await _context.Lessons
                 .Include(l => l.Course)
                 .FirstOrDefaultAsync(l => l.Id == id);
-            if (lesson == null)
-                return NotFound();
+            if (lesson == null) return NotFound();
 
             ViewBag.CourseId = lesson.CourseId;
             ViewBag.CourseName = lesson.Course.Title;
@@ -219,8 +213,7 @@ namespace LearnHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditLesson(int id, Lesson lesson, IFormFile? pdfFile)
         {
-            if (id != lesson.Id)
-                return NotFound();
+            if (id != lesson.Id) return NotFound();
 
             ModelState.Remove("Course");
 
@@ -231,8 +224,7 @@ namespace LearnHub.Controllers
             }
 
             var existing = await _context.Lessons.FindAsync(id);
-            if (existing == null)
-                return NotFound();
+            if (existing == null) return NotFound();
 
             existing.Title = lesson.Title;
             existing.Type = lesson.Type;
@@ -261,8 +253,7 @@ namespace LearnHub.Controllers
         public async Task<IActionResult> DeleteLesson(int id)
         {
             var lesson = await _context.Lessons.FindAsync(id);
-            if (lesson == null)
-                return NotFound();
+            if (lesson == null) return NotFound();
 
             var courseId = lesson.CourseId;
             _context.Lessons.Remove(lesson);
@@ -270,6 +261,171 @@ namespace LearnHub.Controllers
 
             TempData["Success"] = "Ders silindi.";
             return RedirectToAction(nameof(Lessons), new { courseId });
+        }
+
+        // ── QUIZ YÖNETİMİ ────────────────────────────────────
+
+        public async Task<IActionResult> Quizzes(int courseId)
+        {
+            var userId = GetUserId();
+            var course = await _context.Courses
+                .Include(c => c.Quizzes)
+                    .ThenInclude(q => q.Questions)
+                .FirstOrDefaultAsync(c => c.Id == courseId && c.InstructorId == userId);
+
+            if (course == null) return NotFound();
+
+            ViewBag.Course = course;
+            return View(course.Quizzes.ToList());
+        }
+
+        public async Task<IActionResult> CreateQuiz(int courseId)
+        {
+            var userId = GetUserId();
+            var course = await _context.Courses
+                .FirstOrDefaultAsync(c => c.Id == courseId && c.InstructorId == userId);
+            if (course == null) return NotFound();
+
+            ViewBag.CourseId = courseId;
+            ViewBag.CourseName = course.Title;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateQuiz(Quiz quiz)
+        {
+            ModelState.Remove("Course");
+            ModelState.Remove("Questions");
+            ModelState.Remove("Attempts");
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CourseId = quiz.CourseId;
+                return View(quiz);
+            }
+
+            quiz.CreatedAt = DateTime.UtcNow;
+            _context.Quizzes.Add(quiz);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Quiz oluşturuldu. Şimdi soru ekleyin.";
+            return RedirectToAction(nameof(EditQuiz), new { id = quiz.Id });
+        }
+
+        public async Task<IActionResult> EditQuiz(int id)
+        {
+            var quiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                    .ThenInclude(q => q.Options)
+                .Include(q => q.Course)
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (quiz == null) return NotFound();
+
+            return View(quiz);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddQuestion(int quizId, string text)
+        {
+            var lastOrder = await _context.Questions
+                .Where(q => q.QuizId == quizId)
+                .MaxAsync(q => (int?)q.Order) ?? 0;
+
+            var question = new Question
+            {
+                QuizId = quizId,
+                Text = text,
+                Order = lastOrder + 1
+            };
+
+            _context.Questions.Add(question);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Soru eklendi. Şimdi seçenekleri ekleyin.";
+            return RedirectToAction(nameof(EditQuiz), new { id = quizId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddOption(int questionId, string text, bool isCorrect)
+        {
+            var question = await _context.Questions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+
+            if (question == null) return NotFound();
+
+            // Eğer bu doğru cevap olarak işaretlendiyse,
+            // diğer seçeneklerin doğruluğunu kaldır
+            if (isCorrect)
+            {
+                foreach (var opt in question.Options)
+                    opt.IsCorrect = false;
+            }
+
+            _context.Options.Add(new Option
+            {
+                QuestionId = questionId,
+                Text = text,
+                IsCorrect = isCorrect
+            });
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(EditQuiz),
+                new { id = question.QuizId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteQuestion(int id)
+        {
+            var question = await _context.Questions
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (question == null) return NotFound();
+
+            var quizId = question.QuizId;
+            _context.Options.RemoveRange(question.Options);
+            _context.Questions.Remove(question);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(EditQuiz), new { id = quizId });
+        }
+
+        // ── EĞİTMEN — ÖĞRENCİ İLERLEME RAPORU ─────────────
+
+        public async Task<IActionResult> StudentProgress(int courseId)
+        {
+            var userId = GetUserId();
+            var course = await _context.Courses
+                .Include(c => c.Lessons)
+                .FirstOrDefaultAsync(c => c.Id == courseId && c.InstructorId == userId);
+
+            if (course == null) return NotFound();
+
+            var enrollments = await _context.Enrollments
+                .Include(e => e.User)
+                .Where(e => e.CourseId == courseId)
+                .ToListAsync();
+
+            var allProgress = await _context.LessonProgresses
+                .Where(lp => lp.Lesson.CourseId == courseId && lp.IsCompleted)
+                .ToListAsync();
+
+            var quizAttempts = await _context.QuizAttempts
+                .Include(qa => qa.Quiz)
+                .Where(qa => qa.Quiz.CourseId == courseId)
+                .ToListAsync();
+
+            ViewBag.Course = course;
+            ViewBag.AllProgress = allProgress;
+            ViewBag.QuizAttempts = quizAttempts;
+
+            return View(enrollments);
         }
 
         private async Task LoadCategories(int? selectedId = null)

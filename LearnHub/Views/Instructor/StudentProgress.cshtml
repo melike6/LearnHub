@@ -1,0 +1,68 @@
+﻿@model IEnumerable<LearnHub.Models.Enrollment>
+@{
+    ViewData["Title"] = "Öğrenci İlerlemeleri";
+    var course = ViewBag.Course as LearnHub.Models.Course;
+    var allProgress = ViewBag.AllProgress as List<LearnHub.Models.LessonProgress>;
+    var quizAttempts = ViewBag.QuizAttempts as List<LearnHub.Models.QuizAttempt>;
+}
+
+<h2>@course?.Title — Öğrenci İlerlemeleri</h2>
+<a asp-action="Index" class="btn btn-secondary mb-3">← Panele Dön</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Bu kursa henüz kayıtlı öğrenci yok.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Öğrenci</th>
+                <th>Kayıt Tarihi</th>
+                <th>Tamamlanan Ders</th>
+                <th>İlerleme</th>
+                <th>En İyi Quiz Puanı</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var enrollment in Model)
+            {
+                var completedCount = allProgress?
+                .Count(lp => lp.UserId == enrollment.UserId) ?? 0;
+                var totalLessons = course?.Lessons.Count ?? 0;
+                var percent = totalLessons > 0
+                ? (int)((double)completedCount / totalLessons * 100) : 0;
+                var bestScore = quizAttempts?
+                .Where(qa => qa.UserId == enrollment.UserId)
+                .OrderByDescending(qa => qa.Score)
+                .FirstOrDefault();
+
+                <tr>
+                    <td>@enrollment.User.FullName</td>
+                    <td>@enrollment.EnrolledAt.ToString("dd.MM.yyyy")</td>
+                    <td>@completedCount / @totalLessons</td>
+                    <td>
+                        <div class="progress" style="height:18px">
+                            <div class="progress-bar" style="width:@percent%">
+                                %@percent
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        @if (bestScore != null)
+                        {
+                            <span class="badge @(bestScore.IsPassed ? "bg-success" : "bg-danger")">
+                                %@bestScore.Score
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Henüz quiz çözülmedi</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

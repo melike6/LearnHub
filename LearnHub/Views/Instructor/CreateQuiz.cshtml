@@ -1,0 +1,41 @@
+﻿@model LearnHub.Models.Quiz
+@{
+    ViewData["Title"] = "Yeni Quiz";
+}
+
+<h2>Yeni Quiz — @ViewBag.CourseName</h2>
+
+<div class="row">
+    <div class="col-md-5">
+        <form asp-action="CreateQuiz" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CourseId" value="@ViewBag.CourseId" />
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Title">Quiz Adı</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description">Açıklama</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PassingScore">Geçme Puanı (%)</label>
+                <input asp-for="PassingScore" class="form-control" type="number"
+                       min="0" max="100" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Oluştur ve Soru Ekle</button>
+            <a asp-action="Quizzes" asp-route-courseId="@ViewBag.CourseId"
+               class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -49,6 +49,7 @@ namespace LearnHub.Controllers
                 .Include(c => c.Category)
                 .Include(c => c.Instructor)
                 .Include(c => c.Lessons.Where(l => l.IsActive).OrderBy(l => l.Order))
+                .Include(c => c.Quizzes.Where(q => q.IsActive))
                 .FirstOrDefaultAsync(c => c.Id == id && c.Status == CourseStatus.Approved);
 
             if (course == null)

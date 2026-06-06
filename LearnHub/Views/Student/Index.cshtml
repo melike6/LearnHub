@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Panelim";
     var completedIds = ViewBag.CompletedLessonIds as HashSet<int> ?? new HashSet<int>();
+    var quizAttempts = ViewBag.QuizAttempts as
+        List<LearnHub.Models.QuizAttempt> ?? new();
 }
 
 <h2>Panelim</h2>
@@ -15,15 +17,14 @@
 }
 else
 {
-    <div class="row row-cols-1 row-cols-md-2 g-4">
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
         @foreach (var enrollment in Model)
         {
             var totalLessons = enrollment.Course.Lessons.Count;
             var completedCount = enrollment.Course.Lessons
             .Count(l => completedIds.Contains(l.Id));
             var percent = totalLessons > 0
-            ? (int)((double)completedCount / totalLessons * 100)
-            : 0;
+            ? (int)((double)completedCount / totalLessons * 100) : 0;
 
             <div class="col">
                 <div class="card h-100">
@@ -61,4 +62,41 @@ else
             </div>
         }
     </div>
+
+    @if (quizAttempts.Any())
+    {
+        <h4>Quiz Geçmişim</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Quiz</th>
+                    <th>Kurs</th>
+                    <th>Puan</th>
+                    <th>Sonuç</th>
+                    <th>Tarih</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var attempt in quizAttempts)
+                {
+                    <tr>
+                        <td>@attempt.Quiz.Title</td>
+                        <td>@attempt.Quiz.Course.Title</td>
+                        <td>%@attempt.Score</td>
+                        <td>
+                            @if (attempt.IsPassed)
+                            {
+                                <span class="badge bg-success">Geçti</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Kaldı</span>
+                            }
+                        </td>
+                        <td>@attempt.AttemptedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }

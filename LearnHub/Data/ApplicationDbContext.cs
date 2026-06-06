@@ -14,6 +14,11 @@ namespace LearnHub.Data
         public DbSet<Lesson> Lessons { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
         public DbSet<LessonProgress> LessonProgresses { get; set; }
+        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<Option> Options { get; set; }
+        public DbSet<QuizAttempt> QuizAttempts { get; set; }
+        public DbSet<AttemptAnswer> AttemptAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -55,15 +60,43 @@ namespace LearnHub.Data
                 .HasForeignKey(lp => lp.LessonId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Aynı kullanıcı aynı kursa iki kez kayıt olamasın
             builder.Entity<Enrollment>()
                 .HasIndex(e => new { e.UserId, e.CourseId })
                 .IsUnique();
 
-            // Aynı kullanıcı aynı dersin ilerlemesini iki kez kaydedemez
             builder.Entity<LessonProgress>()
                 .HasIndex(lp => new { lp.UserId, lp.LessonId })
                 .IsUnique();
+
+            builder.Entity<QuizAttempt>()
+                .HasOne(qa => qa.User)
+                .WithMany()
+                .HasForeignKey(qa => qa.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<QuizAttempt>()
+                .HasOne(qa => qa.Quiz)
+                .WithMany(q => q.Attempts)
+                .HasForeignKey(qa => qa.QuizId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttemptAnswer>()
+                .HasOne(aa => aa.QuizAttempt)
+                .WithMany(qa => qa.Answers)
+                .HasForeignKey(aa => aa.QuizAttemptId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttemptAnswer>()
+                .HasOne(aa => aa.Question)
+                .WithMany()
+                .HasForeignKey(aa => aa.QuestionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AttemptAnswer>()
+                .HasOne(aa => aa.SelectedOption)
+                .WithMany()
+                .HasForeignKey(aa => aa.SelectedOptionId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

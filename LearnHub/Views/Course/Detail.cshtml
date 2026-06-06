@@ -52,6 +52,19 @@
                         </div>
                     </div>
                 </div>
+
+                @if (Model.Quizzes.Any())
+                {
+                    <h5 class="mt-3">Quizler</h5>
+                    @foreach (var quiz in Model.Quizzes.Where(q => q.IsActive))
+                    {
+                        <a asp-controller="Quiz" asp-action="Take"
+                           asp-route-id="@quiz.Id"
+                           class="btn btn-outline-primary me-2 mb-2">
+                            📝 @quiz.Title
+                        </a>
+                    }
+                }
             }
         }
         else
@@ -65,9 +78,7 @@
 
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header">
-                <strong>Ders Listesi</strong>
-            </div>
+            <div class="card-header"><strong>Ders Listesi</strong></div>
             <ul class="list-group list-group-flush">
                 @if (!Model.Lessons.Any())
                 {

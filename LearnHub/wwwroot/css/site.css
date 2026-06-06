@@ -1,22 +1,71 @@
+/* Genel */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Progress bar animasyonu */
+.progress-bar {
+    transition: width 0.6s ease;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* Kurs kartlarý */
+.card {
+    border: none;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-body {
-  margin-bottom: 60px;
+    .card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+    }
+
+/* Navbar */
+.navbar {
+    padding: 0.6rem 0;
+}
+
+/* Hero */
+.rounded-3 {
+    border-radius: 12px !important;
+}
+
+/* Tablolar */
+.table th {
+    background-color: #f1f3f5;
+    font-weight: 600;
+}
+
+/* Badge'ler */
+.badge {
+    font-size: 0.78rem;
+}
+
+/* Footer */
+footer {
+    padding: 24px 0;
+}
+
+/* Quiz sonuç ekraný */
+.display-1 {
+    font-size: 5rem;
+}
+
+/* Mobil düzenlemeler */
+@media (max-width: 576px) {
+    .card-img-top {
+        height: 140px !important;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
 }

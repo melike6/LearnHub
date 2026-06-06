@@ -1,32 +1,64 @@
-using System.Diagnostics;
+using LearnHub.Data;
 using LearnHub.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LearnHub.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ApplicationDbContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var featuredCourses = await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Instructor)
+                .Where(c => c.Status == CourseStatus.Approved && c.IsActive)
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(6)
+                .ToListAsync();
+
+            var categories = await _context.Categories
+                .Where(c => c.IsActive)
+                .ToListAsync();
+
+            ViewBag.FeaturedCourses = featuredCourses;
+            ViewBag.Categories = categories;
+
             return View();
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Search(string q)
         {
-            return View();
+            if (string.IsNullOrWhiteSpace(q))
+                return RedirectToAction("Index", "Course");
+
+            var courses = await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Instructor)
+                .Where(c => c.Status == CourseStatus.Approved &&
+                            c.IsActive &&
+                            (c.Title.Contains(q) ||
+                             c.Description!.Contains(q) ||
+                             c.Instructor.FullName.Contains(q) ||
+                             c.Category.Name.Contains(q)))
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            ViewBag.Query = q;
+            ViewBag.ResultCount = courses.Count;
+            return View(courses);
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View();
         }
     }
 }

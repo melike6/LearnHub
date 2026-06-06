@@ -1,8 +1,93 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana Sayfa";
+    var featuredCourses = ViewBag.FeaturedCourses as
+        List<LearnHub.Models.Course> ?? new();
+    var categories = ViewBag.Categories as
+        List<LearnHub.Models.Category> ?? new();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Hero bölümü -->
+<div class="p-5 mb-4 bg-light rounded-3 text-center">
+    <h1 class="display-5 fw-bold">LearnHub'a Hoş Geldiniz</h1>
+    <p class="fs-5 text-muted">
+        Yüzlerce kurs arasından kendinize uygun olanı bulun ve öğrenmeye başlayın.
+    </p>
+    <form asp-controller="Home" asp-action="Search" method="get"
+          class="d-flex justify-content-center gap-2 mt-3">
+        <input type="text" name="q" class="form-control"
+               style="max-width:400px"
+               placeholder="Kurs, eğitmen veya kategori ara..." />
+        <button type="submit" class="btn btn-primary px-4">Ara</button>
+    </form>
 </div>
+
+<!-- Kategoriler -->
+@if (categories.Any())
+{
+    <h4 class="mb-3">Kategoriler</h4>
+    <div class="d-flex flex-wrap gap-2 mb-5">
+        @foreach (var cat in categories)
+        {
+            <a asp-controller="Course" asp-action="Index"
+               asp-route-categoryId="@cat.Id"
+               class="btn btn-outline-secondary">
+                @cat.Name
+            </a>
+        }
+    </div>
+}
+
+<!-- Öne çıkan kurslar -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Öne Çıkan Kurslar</h4>
+    <a asp-controller="Course" asp-action="Index"
+       class="btn btn-outline-primary btn-sm">
+        Tümünü Gör →
+    </a>
+</div>
+
+@if (!featuredCourses.Any())
+{
+    <div class="alert alert-info">Henüz onaylanmış kurs bulunmuyor.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var course in featuredCourses)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    @if (course.CoverImage != null)
+                    {
+                        <img src="@course.CoverImage" class="card-img-top"
+                             style="height:180px;object-fit:cover" />
+                    }
+                    else
+                    {
+                        <div class="bg-secondary text-white d-flex align-items-center
+                                                justify-content-center"
+                             style="height:180px;font-size:2rem">
+                            📚
+                        </div>
+                    }
+                    <div class="card-body">
+                        <span class="badge bg-secondary mb-1">
+                            @course.Category.Name
+                        </span>
+                        <h5 class="card-title">@course.Title</h5>
+                        <p class="card-text text-muted small">
+                            Eğitmen: @course.Instructor.FullName
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a asp-controller="Course" asp-action="Detail"
+                           asp-route-id="@course.Id"
+                           class="btn btn-primary btn-sm w-100">
+                            Kursa Git
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

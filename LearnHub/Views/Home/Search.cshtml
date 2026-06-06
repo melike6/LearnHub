@@ -1,0 +1,67 @@
+﻿@model IEnumerable<LearnHub.Models.Course>
+@{
+    ViewData["Title"] = "Arama Sonuçları";
+}
+
+<h3>
+    "@ViewBag.Query" için arama sonuçları
+    <small class="text-muted fs-6">(@ViewBag.ResultCount sonuç)</small>
+</h3>
+
+<a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-sm mb-3">
+    ← Ana Sayfaya Dön
+</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">
+        Aramanızla eşleşen kurs bulunamadı.
+        Farklı anahtar kelimeler deneyin.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4 mt-1">
+        @foreach (var course in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    @if (course.CoverImage != null)
+                    {
+                        <img src="@course.CoverImage" class="card-img-top"
+                             style="height:180px;object-fit:cover" />
+                    }
+                    else
+                    {
+                        <div class="bg-secondary text-white d-flex align-items-center
+                                                justify-content-center"
+                             style="height:180px;font-size:2rem">
+                            📚
+                        </div>
+                    }
+                <div class="card-body">
+                    <span class="badge bg-secondary mb-1">
+                        @course.Category.Name
+                    </span>
+                    <h5 class="card-title">@course.Title</h5>
+                    <p class="card-text text-muted small">
+                        Eğitmen: @course.Instructor.FullName
+                    </p>
+                    <p class="card-text small">
+                        @(course.Description?.Length > 100
+                                            ? course.Description[..100] + "..."
+                                            : course.Description)
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a asp-controller="Course" asp-action="Detail"
+                   asp-route-id="@course.Id"
+                   class="btn btn-primary btn-sm w-100">
+                    Kursa Git
+                </a>
+            </div>
+        </div>
+    </div>
+        }
+    </div>
+}

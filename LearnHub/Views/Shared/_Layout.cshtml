@@ -61,7 +61,6 @@
                         </li>
                     </ul>
 
-                    <!-- Navbar arama formu -->
                     <form class="d-flex me-3"
                           asp-controller="Home" asp-action="Search"
                           method="get">
@@ -111,6 +110,14 @@
                                     👤 @UserManager.GetUserName(User)
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Profile"
+                                           asp-action="Index">
+                                            Profilim
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
                                     <li>
                                         <form asp-area="Identity"
                                               asp-page="/Account/Logout"

@@ -24,6 +24,7 @@ namespace LearnHub.Controllers
             var query = _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Instructor)
+                .Include(c => c.Reviews)
                 .Where(c => c.Status == CourseStatus.Approved && c.IsActive);
 
             if (categoryId.HasValue)
@@ -50,10 +51,10 @@ namespace LearnHub.Controllers
                 .Include(c => c.Instructor)
                 .Include(c => c.Lessons.Where(l => l.IsActive).OrderBy(l => l.Order))
                 .Include(c => c.Quizzes.Where(q => q.IsActive))
-                .FirstOrDefaultAsync(c => c.Id == id && c.Status == CourseStatus.Approved);
+                .FirstOrDefaultAsync(c => c.Id == id &&
+                                          c.Status == CourseStatus.Approved);
 
-            if (course == null)
-                return NotFound();
+            if (course == null) return NotFound();
 
             var userId = GetUserId();
             bool isEnrolled = false;
@@ -70,12 +71,31 @@ namespace LearnHub.Controllers
                         .CountAsync(lp => lp.UserId == userId &&
                                           lp.Lesson.CourseId == id &&
                                           lp.IsCompleted);
-                    progressPercent = (int)((double)completedCount / course.Lessons.Count * 100);
+                    progressPercent = (int)((double)completedCount /
+                                            course.Lessons.Count * 100);
                 }
             }
 
+            // Yorumlar
+            var reviews = await _context.Reviews
+                .Include(r => r.User)
+                .Where(r => r.CourseId == id)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            double averageRating = reviews.Any()
+                ? reviews.Average(r => r.Rating) : 0;
+
+            // Kullanıcının mevcut yorumu
+            var userReview = userId != null
+                ? reviews.FirstOrDefault(r => r.UserId == userId)
+                : null;
+
             ViewBag.IsEnrolled = isEnrolled;
             ViewBag.ProgressPercent = progressPercent;
+            ViewBag.Reviews = reviews;
+            ViewBag.AverageRating = Math.Round(averageRating, 1);
+            ViewBag.UserReview = userReview;
 
             return View(course);
         }
@@ -112,13 +132,12 @@ namespace LearnHub.Controllers
 
             var lesson = await _context.Lessons
                 .Include(l => l.Course)
-                    .ThenInclude(c => c.Lessons.Where(l => l.IsActive).OrderBy(l => l.Order))
+                    .ThenInclude(c => c.Lessons
+                        .Where(l => l.IsActive).OrderBy(l => l.Order))
                 .FirstOrDefaultAsync(l => l.Id == id && l.IsActive);
 
-            if (lesson == null)
-                return NotFound();
+            if (lesson == null) return NotFound();
 
-            // Kursa kayıtlı mı kontrol et
             var isEnrolled = await _context.Enrollments
                 .AnyAsync(e => e.UserId == userId && e.CourseId == lesson.CourseId);
 
@@ -128,7 +147,6 @@ namespace LearnHub.Controllers
                 return RedirectToAction(nameof(Detail), new { id = lesson.CourseId });
             }
 
-            // Bu dersi tamamladı mı
             var progress = await _context.LessonProgresses
                 .FirstOrDefaultAsync(lp => lp.UserId == userId && lp.LessonId == id);
 
@@ -145,7 +163,8 @@ namespace LearnHub.Controllers
             var userId = GetUserId()!;
 
             var progress = await _context.LessonProgresses
-                .FirstOrDefaultAsync(lp => lp.UserId == userId && lp.LessonId == lessonId);
+                .FirstOrDefaultAsync(lp => lp.UserId == userId &&
+                                           lp.LessonId == lessonId);
 
             if (progress == null)
             {
@@ -165,9 +184,79 @@ namespace LearnHub.Controllers
 
             await _context.SaveChangesAsync();
             TempData["Success"] = "Ders tamamlandı olarak işaretlendi!";
-
-            var lesson = await _context.Lessons.FindAsync(lessonId);
             return RedirectToAction(nameof(Lesson), new { id = lessonId });
+        }
+
+        // ── YORUMLAR ─────────────────────────────────────────
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview(int courseId, int rating,
+            string comment)
+        {
+            var userId = GetUserId()!;
+
+            // Kursa kayıtlı mı kontrol et
+            var isEnrolled = await _context.Enrollments
+                .AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+            if (!isEnrolled)
+            {
+                TempData["Error"] = "Yorum yapmak için kursa kayıtlı olmalısınız.";
+                return RedirectToAction(nameof(Detail), new { id = courseId });
+            }
+
+            // Daha önce yorum yapmış mı
+            var existing = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.UserId == userId &&
+                                          r.CourseId == courseId);
+
+            if (existing != null)
+            {
+                // Varsa güncelle
+                existing.Rating = rating;
+                existing.Comment = comment;
+                existing.CreatedAt = DateTime.UtcNow;
+                TempData["Success"] = "Yorumunuz güncellendi.";
+            }
+            else
+            {
+                // Yoksa ekle
+                _context.Reviews.Add(new Review
+                {
+                    UserId = userId,
+                    CourseId = courseId,
+                    Rating = rating,
+                    Comment = comment,
+                    CreatedAt = DateTime.UtcNow
+                });
+                TempData["Success"] = "Yorumunuz eklendi.";
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Detail), new { id = courseId });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReview(int courseId)
+        {
+            var userId = GetUserId()!;
+
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.UserId == userId &&
+                                          r.CourseId == courseId);
+
+            if (review != null)
+            {
+                _context.Reviews.Remove(review);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Yorumunuz silindi.";
+            }
+
+            return RedirectToAction(nameof(Detail), new { id = courseId });
         }
     }
 }

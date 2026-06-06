@@ -12,7 +12,8 @@
                    class="form-control" placeholder="Kurs ara..." />
             <select name="categoryId" class="form-select" style="max-width:200px">
                 <option value="">Tüm Kategoriler</option>
-                @foreach (var cat in ViewBag.Categories as List<LearnHub.Models.Category>)
+                @foreach (var cat in ViewBag.Categories as
+                                List<LearnHub.Models.Category>)
                 {
                     <option value="@cat.Id"
                             selected="@(ViewBag.SelectedCategory == cat.Id)">
@@ -35,23 +36,46 @@ else
         @foreach (var course in Model)
         {
             <div class="col">
-                <div class="card h-100">
+                <div class="card h-100 shadow-sm">
                     @if (course.CoverImage != null)
                     {
                         <img src="@course.CoverImage" class="card-img-top"
                              style="height:180px;object-fit:cover" />
                     }
+                    else
+                    {
+                        <div class="bg-secondary text-white d-flex
+                                                align-items-center justify-content-center"
+                             style="height:180px;font-size:2rem">
+                            📚
+                        </div>
+                    }
                     <div class="card-body">
+                        <span class="badge bg-secondary mb-1">
+                            @course.Category.Name
+                        </span>
                         <h5 class="card-title">@course.Title</h5>
-                        <p class="card-text text-muted small">@course.Category.Name</p>
-                        <p class="card-text">@course.Description</p>
-                        <p class="card-text small">
-                            <strong>Eğitmen:</strong> @course.Instructor.FullName
+                        <p class="card-text text-muted small">
+                            Eğitmen: @course.Instructor.FullName
                         </p>
+                        @if (course.Reviews.Any())
+                        {
+                            var avg = Math.Round(
+                            course.Reviews.Average(r => r.Rating), 1);
+                            <div class="d-flex align-items-center gap-1">
+                                <span style="color:#f5a623">★</span>
+                                <span class="small fw-bold">@avg</span>
+                                <span class="text-muted small">
+                                    (@course.Reviews.Count)
+                                </span>
+                            </div>
+                        }
                     </div>
-                    <div class="card-footer">
+                    <div class="card-footer bg-transparent">
                         <a asp-action="Detail" asp-route-id="@course.Id"
-                           class="btn btn-primary btn-sm">Detay</a>
+                           class="btn btn-primary btn-sm w-100">
+                            Kursa Git
+                        </a>
                     </div>
                 </div>
             </div>

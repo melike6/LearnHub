@@ -19,6 +19,7 @@ namespace LearnHub.Data
         public DbSet<Option> Options { get; set; }
         public DbSet<QuizAttempt> QuizAttempts { get; set; }
         public DbSet<AttemptAnswer> AttemptAnswers { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -97,6 +98,23 @@ namespace LearnHub.Data
                 .WithMany()
                 .HasForeignKey(aa => aa.SelectedOptionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Review>()
+                .HasOne(r => r.Course)
+                .WithMany()
+                .HasForeignKey(r => r.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Bir kullanıcı bir kursa sadece bir yorum yapabilsin
+            builder.Entity<Review>()
+                .HasIndex(r => new { r.UserId, r.CourseId })
+                .IsUnique();
         }
     }
 }

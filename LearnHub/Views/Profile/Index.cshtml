@@ -1,0 +1,117 @@
+﻿@model LearnHub.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Profilim";
+}
+
+<h2 class="mb-4">Profilim</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="row g-4">
+
+    <!-- Sol: Profil bilgileri -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center p-4">
+            @if (Model.ProfilePicture != null)
+            {
+                <img src="@Model.ProfilePicture"
+                     class="rounded-circle mx-auto d-block mb-3"
+                     style="width:100px;height:100px;object-fit:cover" />
+            }
+            else
+            {
+                <div class="rounded-circle bg-secondary text-white d-flex
+                                align-items-center justify-content-center mx-auto mb-3"
+                     style="width:100px;height:100px;font-size:2.5rem">
+                    👤
+                </div>
+            }
+            <h5>@Model.FullName</h5>
+            <p class="text-muted small">@Model.Email</p>
+            <p class="text-muted small">
+                Kayıt: @Model.CreatedAt.ToString("dd.MM.yyyy")
+            </p>
+        </div>
+    </div>
+
+    <!-- Sağ: Formlar -->
+    <div class="col-md-8">
+
+        <!-- Profil güncelleme formu -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">Profil Bilgilerini Güncelle</div>
+            <div class="card-body">
+                <form asp-action="UpdateProfile" method="post"
+                      enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group mb-3">
+                        <label>Ad Soyad</label>
+                        <input type="text" name="fullName"
+                               value="@Model.FullName"
+                               class="form-control" required />
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Profil Fotoğrafı</label>
+                        <input type="file" name="profilePicture"
+                               class="form-control"
+                               accept="image/*" />
+                        @if (Model.ProfilePicture != null)
+                        {
+                            <small class="text-muted">
+                                Mevcut fotoğraf var. Yeni seçersen değiştirilir.
+                            </small>
+                        }
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Güncelle
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Şifre değiştirme formu -->
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Şifre Değiştir</div>
+            <div class="card-body">
+                <form asp-action="ChangePassword" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group mb-3">
+                        <label>Mevcut Şifre</label>
+                        <input type="password" name="currentPassword"
+                               class="form-control" required />
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Yeni Şifre</label>
+                        <input type="password" name="newPassword"
+                               class="form-control" required
+                               minlength="8" />
+                        <small class="text-muted">En az 8 karakter, büyük harf ve rakam içermeli.</small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label>Yeni Şifre Tekrar</label>
+                        <input type="password" name="confirmPassword"
+                               class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-warning">
+                        Şifreyi Değiştir
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>

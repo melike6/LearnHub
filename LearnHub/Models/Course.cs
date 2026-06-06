@@ -38,5 +38,6 @@ namespace LearnHub.Models
 
         public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

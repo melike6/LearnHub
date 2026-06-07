@@ -1,0 +1,82 @@
+﻿@model IEnumerable<LearnHub.Models.Certificate>
+@{
+    ViewData["Title"] = "Sertifikalarım";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Sertifikalarım</h2>
+    <a asp-controller="Student" asp-action="Index"
+       class="btn btn-secondary">← Panelime Dön</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center p-5">
+        <div style="font-size:3rem">🎓</div>
+        <h5 class="mt-3">Henüz sertifikan yok</h5>
+        <p class="text-muted">
+            Bir kursu tamamlayıp quiz'i geçtiğinde sertifikan burada görünecek.
+        </p>
+        <a asp-controller="Course" asp-action="Index"
+           class="btn btn-primary mt-2">Kurslara Göz At</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var cert in Model)
+        {
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    @if (cert.Course.CoverImage != null)
+                    {
+                        <img src="@cert.Course.CoverImage"
+                             class="card-img-top"
+                             style="height:140px;object-fit:cover" />
+                    }
+                    else
+                    {
+                        <div class="bg-dark text-white d-flex align-items-center
+                                                justify-content-center"
+                             style="height:140px;font-size:2.5rem">
+                            🎓
+                        </div>
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@cert.Course.Title</h5>
+                        <p class="text-muted small mb-1">
+                            @cert.Course.Category.Name
+                        </p>
+                        <p class="text-muted small mb-1">
+                            Eğitmen: @cert.Course.Instructor.FullName
+                        </p>
+                        <p class="small mb-0">
+                            Tarih:
+                            <strong>@cert.IssuedAt.ToString("dd.MM.yyyy")</strong>
+                        </p>
+                        <p class="small text-danger fw-bold">
+                            @cert.CertificateCode
+                        </p>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <a asp-action="Index"
+                           asp-route-courseId="@cert.CourseId"
+                           class="btn btn-outline-primary btn-sm">
+                            Görüntüle
+                        </a>
+                        <a asp-action="Download"
+                           asp-route-courseId="@cert.CourseId"
+                           class="btn btn-danger btn-sm">
+                            PDF İndir
+                        </a>
+                        <a asp-action="Verify"
+                           asp-route-code="@cert.CertificateCode"
+                           class="btn btn-outline-secondary btn-sm">
+                            Doğrula
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

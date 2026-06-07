@@ -20,6 +20,7 @@ namespace LearnHub.Data
         public DbSet<QuizAttempt> QuizAttempts { get; set; }
         public DbSet<AttemptAnswer> AttemptAnswers { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<Certificate> Certificates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -111,9 +112,25 @@ namespace LearnHub.Data
                 .HasForeignKey(r => r.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Bir kullanıcı bir kursa sadece bir yorum yapabilsin
             builder.Entity<Review>()
                 .HasIndex(r => new { r.UserId, r.CourseId })
+                .IsUnique();
+
+            builder.Entity<Certificate>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Certificate>()
+                .HasOne(c => c.Course)
+                .WithMany()
+                .HasForeignKey(c => c.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Bir kullanıcı bir kurstan sadece bir sertifika alabilsin
+            builder.Entity<Certificate>()
+                .HasIndex(c => new { c.UserId, c.CourseId })
                 .IsUnique();
         }
     }

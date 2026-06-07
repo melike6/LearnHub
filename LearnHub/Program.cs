@@ -1,5 +1,6 @@
 using LearnHub.Data;
 using LearnHub.Models;
+using LearnHub.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddScoped<CertificateService>();
 
 var app = builder.Build();
 

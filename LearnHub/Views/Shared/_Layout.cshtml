@@ -59,6 +59,12 @@
                                 Kurslar
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-controller="Certificate" asp-action="Verify">
+                                Sertifika Doğrula
+                            </a>
+                        </li>
                     </ul>
 
                     <form class="d-flex me-3"
@@ -115,6 +121,13 @@
                                            asp-controller="Profile"
                                            asp-action="Index">
                                             Profilim
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Certificate"
+                                           asp-action="MyCertificates">
+                                            Sertifikalarım
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>

@@ -1,0 +1,78 @@
+﻿@model LearnHub.Models.Certificate?
+@{
+    ViewData["Title"] = "Sertifika Doğrula";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <h2 class="text-center mb-4">Sertifika Doğrula</h2>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form asp-action="Verify" method="get"
+                      class="d-flex gap-2">
+                    <input type="text" name="code"
+                           class="form-control"
+                           placeholder="Sertifika kodunu girin (örn: LH-AB12CD34)"
+                           value="@Context.Request.Query["code"]" />
+                    <button type="submit" class="btn btn-primary">
+                        Doğrula
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (Context.Request.Query.ContainsKey("code"))
+        {
+            @if (Model != null)
+            {
+                <div class="card border-success shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <strong>✓ Geçerli Sertifika</strong>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <td class="text-muted">Öğrenci</td>
+                                <td class="fw-bold">@Model.User.FullName</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Kurs</td>
+                                <td class="fw-bold">@Model.Course.Title</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Eğitmen</td>
+                                <td class="fw-bold">
+                                    @Model.Course.Instructor.FullName
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Tarih</td>
+                                <td class="fw-bold">
+                                    @Model.IssuedAt.ToString("dd MMMM yyyy")
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Sertifika No</td>
+                                <td class="fw-bold text-danger">
+                                    @Model.CertificateCode
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card border-danger shadow-sm">
+                    <div class="card-header bg-danger text-white">
+                        <strong>✗ Geçersiz Sertifika</strong>
+                    </div>
+                    <div class="card-body text-center text-muted">
+                        Bu kod ile eşleşen bir sertifika bulunamadı.
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

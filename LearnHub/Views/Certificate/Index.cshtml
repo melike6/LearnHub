@@ -1,0 +1,71 @@
+﻿@model LearnHub.Models.Certificate
+@{
+    ViewData["Title"] = "Sertifikan";
+}
+
+<div class="text-center mt-4">
+    <div class="mb-3" style="font-size:4rem">🎓</div>
+    <h2>Tebrikler!</h2>
+    <p class="text-muted fs-5">
+        <strong>@Model.Course.Title</strong> kursunu başarıyla tamamladınız.
+    </p>
+
+    <div class="card shadow mx-auto mt-4 mb-4" style="max-width:500px">
+        <div class="card-body p-4">
+            <h5 class="text-muted mb-3">SERTİFİKA BİLGİLERİ</h5>
+            <table class="table table-borderless">
+                <tr>
+                    <td class="text-muted text-start">Öğrenci</td>
+                    <td class="fw-bold text-end">@Model.User.FullName</td>
+                </tr>
+                <tr>
+                    <td class="text-muted text-start">Kurs</td>
+                    <td class="fw-bold text-end">@Model.Course.Title</td>
+                </tr>
+                <tr>
+                    <td class="text-muted text-start">Eğitmen</td>
+                    <td class="fw-bold text-end">@Model.Course.Instructor.FullName</td>
+                </tr>
+                <tr>
+                    <td class="text-muted text-start">Tarih</td>
+                    <td class="fw-bold text-end">
+                        @Model.IssuedAt.ToString("dd MMMM yyyy")
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted text-start">Sertifika No</td>
+                    <td class="fw-bold text-end text-danger">
+                        @Model.CertificateCode
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a asp-action="Download" asp-route-courseId="@Model.CourseId"
+           class="btn btn-danger btn-lg">
+            📄 PDF İndir
+        </a>
+        <a asp-action="MyCertificates"
+           class="btn btn-outline-secondary btn-lg">
+            Tüm Sertifikalarım
+        </a>
+        <a asp-controller="Course" asp-action="Detail"
+           asp-route-id="@Model.CourseId"
+           class="btn btn-outline-primary btn-lg">
+            Kursa Dön
+        </a>
+    </div>
+
+    <div class="mt-4">
+        <small class="text-muted">
+            Sertifikanı doğrulatmak için:
+            <a asp-action="Verify" asp-route-code="@Model.CertificateCode">
+                @Url.Action("Verify", "Certificate",
+                new { code = Model.CertificateCode },
+                                Context.Request.Scheme)
+            </a>
+        </small>
+    </div>
+</div>
